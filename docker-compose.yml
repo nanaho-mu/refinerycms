@@ -1,0 +1,31 @@
+version: "3.9"
+services:
+  db:
+    image: keinos/sqlite3:latest
+    volumes:
+      - ./tmp/db:/var/lib/sqlite3/
+    environment:
+      POSTGRES_PASSWORD: password
+  web:
+    build: .
+    command: bash -c "rm -f tmp/pids/server.pid && bundle exec rails s -p 3000 -b '0.0.0.0'"
+    volumes:
+      - .:/app
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db
+  solargraph:
+    build:
+      context: .
+      args:
+        - ruby_version=$RUBY_VERSION
+    ports:
+      - $PORT:7658
+    volumes:
+      - $SOURCE_PATH:/app
+    command: [
+      "solargraph", "socket",
+      "--host", "0.0.0.0",
+      "--port", "7658"]
+    restart: always
